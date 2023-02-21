@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leapjs/0.6.4/leap.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <a-entity id="hand" hand-controls="hand: left"></a-entity>
+      <a-entity id="text" text="value: ; align: center; width: 6;"></a-entity>
+    </a-scene>
+
+    <script>
+      var controller = new Leap.Controller({enableGestures: true});
+
+      var isGestureActive = false;
+      var gestureType = null;
+
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        textAlign(CENTER, CENTER);
+        textSize(32);
+      }
+
+      function draw() {
+        if (isGestureActive && gestureType === 'two') {
+          text('+5', width/2, height/2);
+        }
+      }
+
+      controller.on('gesture', function(gesture) {
+        if (gesture.type === 'keyTap' || gesture.type === 'screenTap') {
+          if (isGestureActive) {
+            return;
+          }
+          isGestureActive = true;
+          setTimeout(function() {
+            isGestureActive = false;
+          }, 5000);
+        }
+      });
+
+      controller.on('frame', function(frame) {
+        if (frame.hands.length > 0) {
+          var hand = frame.hands[0];
+          if (hand.pinchStrength > 0.8) {
+            var fingers = hand.fingers;
+            var extendedFingers = fingers.filter(function(finger) {
+              return finger.extended;
+            });
+            if (extendedFingers.length === 2) {
+              gestureType = 'two';
+            }
+          }
+        } else {
+          gestureType = null;
+        }
+      });
+
+      controller.connect();
+    </script>
+  </body>
+</html>
